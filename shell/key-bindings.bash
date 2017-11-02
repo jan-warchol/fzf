@@ -1,11 +1,13 @@
 # Key bindings
 # ------------
 __fzf_select__() {
-  local cmd="${FZF_CTRL_T_COMMAND:-"command find -L . -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
+  SED_QUERY=${FZF_PREFIX:-$^}
+  PREFIX_LENGTH=`echo ${#FZF_PREFIX} + 1 | bc`
+  local cmd="${FZF_CTRL_T_COMMAND:-"command find -L $FZF_PREFIX -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
     -o -type f -print \
     -o -type d -print \
-    -o -type l -print 2> /dev/null | cut -b3-"}"
-  eval "$cmd" | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_CTRL_T_OPTS" fzf -m "$@" | while read -r item; do
+    -o -type l -print 2> /dev/null | cut -b${PREFIX_LENGTH}- "}"
+  eval "$cmd" | sed s:$SED_QUERY:: | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_CTRL_T_OPTS" fzf --prompt=$FZF_PREFIX -m "$@" | while read -r item; do
     printf '%q ' "$item"
   done
   echo
@@ -38,7 +40,7 @@ fzf-file-widget() {
   if __fzf_use_tmux__; then
     __fzf_select_tmux__
   else
-    local selected="$(__fzf_select__)"
+    local selected="$FZF_PREFIX$(__fzf_select__)"
     READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$selected${READLINE_LINE:$READLINE_POINT}"
     READLINE_POINT=$(( READLINE_POINT + ${#selected} ))
   fi
