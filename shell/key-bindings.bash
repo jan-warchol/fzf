@@ -6,7 +6,9 @@ __fzf_select__() {
     -o -type d -print \
     -o -type l -print 2> /dev/null | cut -b3-"}"
   eval "$cmd" |
+  sed "s:^$HOME:~:" |
   FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_CTRL_T_OPTS" fzf -m "$@" |
+  sed "s:^~:$HOME:" |
   while read -r item; do
     printf '%q ' "$item"
   done
