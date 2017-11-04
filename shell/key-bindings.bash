@@ -1,7 +1,7 @@
 # Key bindings
 # ------------
 __fzf_select__() {
-  local cmd="${FZF_CTRL_T_COMMAND:-"command find -L . -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
+  local cmd="${FZF_CTRL_T_COMMAND:-"command find -L $FZF_PATH -mindepth 1 \\( -path '*/\\.*' -o -fstype 'sysfs' -o -fstype 'devfs' -o -fstype 'devtmpfs' -o -fstype 'proc' \\) -prune \
     -o -type f -print \
     -o -type d -print \
     -o -type l -print 2> /dev/null | cut -b3-"}"
@@ -42,7 +42,23 @@ fzf-file-widget() {
   if __fzf_use_tmux__; then
     __fzf_select_tmux__
   else
-    local selected="$(__fzf_select__)"
+    echo $READLINE_POINT
+    if [[ $READLINE_POINT != 0 ]]; then
+        LAST_CHAR="${READLINE_LINE:$READLINE_POINT-1:1}"
+        echo ">$LAST_CHAR<"
+
+        if [[  $LAST_CHAR != " " ]]; then
+            read -r -a words <<< "${READLINE_LINE:0:$READLINE_POINT}"
+            echo "${words[-1]}"
+            export FZF_PATH="${words[-1]}"
+        else
+            export FZF_PATH="."
+        fi
+    else
+        export FZF_PATH="."
+    fi
+
+    local selected="$(__fzf_select__ )"
     READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$selected${READLINE_LINE:$READLINE_POINT}"
     READLINE_POINT=$(( READLINE_POINT + ${#selected} ))
   fi
