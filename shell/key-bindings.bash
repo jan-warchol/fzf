@@ -56,6 +56,7 @@ __fzf_cd__() {
 }
 
 __fzf_history__() (
+  update_history
   local line
   shopt -u nocaseglob nocasematch
   [ -n "$1" ] && prefill="--query=$@" || prefill="--query="
